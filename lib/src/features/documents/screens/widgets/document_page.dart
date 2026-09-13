@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
 
 import '../../../../core/utils/utils.dart';
 import '../../controllers/document_controller.dart';
@@ -20,13 +19,13 @@ class DocumentPage extends ConsumerStatefulWidget {
 
 class _DocumentPageState extends ConsumerState<DocumentPage> {
   openDocument() async {
-    var file = await ref
+    final result = await ref
         .read(documentControllerProvider.notifier)
-        .saveDocumentFile(widget.document);
-    file.fold(
+        .openDocument(widget.document);
+    result.fold(
         (l) => showSnackBar(
             context: context, title: l, snackBarType: SnackBarType.error),
-        (r) async => await OpenFile.open(r));
+        (_) {});
   }
 
   Future<void> _showRenameDialog(

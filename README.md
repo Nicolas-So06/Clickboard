@@ -38,7 +38,8 @@ user stories, Planning Poker, MoSCoW e entregas incrementais por Sprint.
 ## 🛠️ Tecnologias
 
 - **Flutter** `3.38.7`  ·  **Dart** `3.10.7`  (SDK Dart `>=3.0.5 <4.0.0`)
-- **Firebase** (Authentication + Cloud Firestore) — BaaS · _Storage e Cloud Messaging não estão ativos (ver observação abaixo)_
+- **Firebase** (Authentication + Cloud Firestore) — login e dados · _Firebase Storage e Cloud Messaging não estão ativos_
+- **Supabase Storage** — armazenamento gratuito dos arquivos (PDFs/imagens dos documentos)
 - **Riverpod** — gerência de estado
 - **go_router** — navegação/rotas
 
@@ -51,11 +52,11 @@ user stories, Planning Poker, MoSCoW e entregas incrementais por Sprint.
 
 ### 1. Pré-requisitos
 - Flutter `3.38.7` instalado (`flutter --version` para conferir).
-- Os **2 arquivos de configuração do Firebase** (têm chaves, por isso **não ficam no Git**):
-  - `lib/firebase_options.dart`
-  - `android/app/google-services.json`
-  - 🔑 Peça esses 2 arquivos ao **PO** e cole nos caminhos acima. Todos usam o mesmo projeto
-    (`projeto-clickboard`) — **não crie um projeto Firebase próprio**.
+- Os **arquivos de configuração** (têm chaves, por isso **não ficam no Git**):
+  - `lib/firebase_options.dart` e `android/app/google-services.json` (Firebase)
+  - `lib/supabase_config.dart` (Supabase — copie de `lib/supabase_config.example.dart` e preencha)
+  - 🔑 Peça esses arquivos ao **PO** e cole nos caminhos acima. Todos usam o mesmo projeto
+    Firebase (`projeto-clickboard`) e o mesmo projeto Supabase — **não crie projetos próprios**.
 
 ### 2. Baixar dependências
 ```sh
@@ -71,7 +72,7 @@ flutter analyze      # deve terminar com 0 erros
 
 ```sh
 flutter run            # Android: com um emulador aberto ou um celular (depuração USB)
-flutter run -d chrome  # Web: para testar rápido a UI, login e Firestore
+flutter run -d chrome  # Web: testar UI, login, Firestore e os documentos (Supabase)
 ```
 
 Durante o desenvolvimento a máquina do PO **não tinha espaço** para instalar o Android Studio
@@ -83,7 +84,7 @@ inicializadas apenas fora da web (`if (!kIsWeb)`), então:
 | Plataforma | Comportamento |
 |---|---|
 | **Android** (emulador ou celular) | Funciona **completo**, como sempre (notificações, câmera, documentos etc.). **Não precisa reverter nada.** |
-| **Web** (Chrome) | Roda para testar **UI, login (Auth) e Firestore**. Ficam **desligados**: notificações, câmera/foto de perfil (Storage) e o *web scraping* de avisos pode falhar por **CORS**. |
+| **Web** (Chrome) | Roda **login (Auth)**, **Firestore** e os **documentos** (upload/abrir/baixar via Supabase). Ficam **desligados**: notificações e câmera/foto de perfil. |
 
 > 💡 Ou seja: quem tiver emulador Android é só rodar `flutter run` normalmente. Quem não tiver,
 > pode usar `flutter run -d chrome` para desenvolver e demonstrar.
@@ -105,11 +106,12 @@ inicializadas apenas fora da web (`if (!kIsWeb)`), então:
 - **Firebase configurado** (projeto `projeto-clickboard`): Authentication e Cloud Firestore ativos e testados.
 - Adaptação para rodar também na **Web**, sem quebrar o Android.
 
-**Migração Storage → Firestore (avisos e documentos):**
-- Como o Storage exige plano pago, os **avisos** e **documentos** passaram a ser lidos e gravados
-  no **Cloud Firestore** (gratuito), no lugar do Firebase Storage.
-- Resultado: criar/listar/renomear/excluir funciona sem custo, e a tela não trava mais no
-  carregamento (mostra estado vazio quando não há itens).
+**Saída do Firebase Storage (que é pago):**
+- Os **metadados** de avisos e documentos (nome, data, etc.) passaram a ficar no **Cloud Firestore** (gratuito).
+- Os **arquivos** (PDFs/imagens) passaram a ser enviados para o **Supabase Storage** (gratuito),
+  que devolve uma URL pública guardada junto com o documento.
+- Resultado: adicionar/listar/renomear/excluir/baixar funciona **sem custo**, e a tela não trava
+  mais no carregamento (mostra estado vazio quando não há itens).
 
 **Sprint 1 — em andamento (história de usuário):**
 - **HU01** — apenas a **coordenação** pode renomear/excluir avisos e documentos oficiais.
@@ -117,12 +119,15 @@ inicializadas apenas fora da web (`if (!kIsWeb)`), então:
 
 ---
 
-## ℹ️ Observação sobre o Firebase Storage
+## ℹ️ Observação sobre armazenamento (por que sem custo)
 
-O **Storage** **não está ativo**: projetos Firebase novos exigem o plano pago **Blaze** (com cartão)
-para habilitá-lo, e o grupo optou por **não vincular cartão**. Por isso, avisos e documentos foram
-migrados para o **Firestore** (grátis). As features que ainda dependem de Storage (foto de perfil,
-imagens do carrossel e arquivos de notas) **permanecem desativadas** — não fazem parte da Sprint 1.
+O **Firebase Storage** exige o plano pago **Blaze** (com cartão), e o grupo optou por **não vincular
+cartão**. A solução foi separar as responsabilidades, tudo no plano gratuito:
+- **Cloud Firestore** guarda os **dados** (metadados dos documentos/avisos).
+- **Supabase Storage** guarda os **arquivos** em si.
+
+As features que ainda dependiam do Firebase Storage (foto de perfil, imagens do carrossel e arquivos
+de notas) **permanecem desativadas** — não fazem parte da Sprint 1.
 
 ---
 

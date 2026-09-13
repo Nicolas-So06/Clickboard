@@ -1,12 +1,7 @@
-import 'dart:io';
-
 import 'package:fpdart/fpdart.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/utils/utils.dart';
+import '../../../core/services/remote_file_service.dart';
 import '../../../models/notice_model.dart';
 import '../../../providers/type_defs.dart';
 import '../repository/notice_repository.dart';
@@ -23,6 +18,7 @@ Future<void> noticeFuture(NoticeFutureRef ref, {bool isRefreshed = false}) {
 @Riverpod(keepAlive: true)
 class NoticeController extends _$NoticeController {
   final NoticeRepository _noticeRepository = NoticeRepository();
+  final RemoteFileService _remoteFileService = RemoteFileService();
 
   @override
   List<Notice> build() => [];
@@ -32,16 +28,14 @@ class NoticeController extends _$NoticeController {
     state = await _noticeRepository.getAllNotices();
   }
 
-  FutureEither<String> saveNoticeFile(Notice notice) async {
+  FutureVoid openNotice(Notice notice) async {
     if (notice.downloadUrl.isEmpty) {
       return left('Arquivo indisponível para este aviso');
     }
     try {
-      final tempDir = (await getTemporaryDirectory()).path;
-      final file = File('$tempDir/${notice.name}.pdf');
-      final response = await http.get(Uri.parse(notice.downloadUrl));
-      await file.writeAsBytes(response.bodyBytes);
-      return right(file.path);
+      await _remoteFileService.open(notice.downloadUrl,
+          fileName: '${notice.name}.pdf');
+      return right(null);
     } catch (e) {
       return left(e.toString());
     }
@@ -52,16 +46,11 @@ class NoticeController extends _$NoticeController {
       return left('Arquivo indisponível para este aviso');
     }
     try {
-      final downloadPath = (await getDownloadPath())!;
-      final file = File('$downloadPath/${notice.name}.pdf');
-      if (await Permission.manageExternalStorage.request().isGranted) {
-        final response = await http.get(Uri.parse(notice.downloadUrl));
-        await file.writeAsBytes(response.bodyBytes);
-        return right(downloadPath);
-      }
+      final destination = await _remoteFileService.download(notice.downloadUrl,
+          fileName: '${notice.name}.pdf');
+      return right(destination);
     } catch (e) {
       return left(e.toString());
     }
-    return left('Aceite as permissões de arquivo para baixar');
   }
 }

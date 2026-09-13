@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
 
 import '../../../../core/utils/utils.dart';
 import '../../../../models/notice_model.dart';
@@ -23,13 +22,13 @@ class NoticeTile extends ConsumerStatefulWidget {
 
 class _NoticeTileState extends ConsumerState<NoticeTile> {
   openNotice() async {
-    var file = await ref
+    final result = await ref
         .read(noticeControllerProvider.notifier)
-        .saveNoticeFile(widget.notice);
-    file.fold(
+        .openNotice(widget.notice);
+    result.fold(
         (l) => showSnackBar(
             context: context, title: l, snackBarType: SnackBarType.error),
-        (r) async => await OpenFile.open(r));
+        (_) {});
   }
 
   @override

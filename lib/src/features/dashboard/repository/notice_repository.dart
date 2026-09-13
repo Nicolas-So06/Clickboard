@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../core/constants/firebase_constants.dart';
+import '../../../core/utils/list_extensions.dart';
 import '../../../models/notice_model.dart';
 
 class NoticeRepository {
@@ -14,9 +15,9 @@ class NoticeRepository {
 
   Future<List<Notice>> getAllNotices() async {
     final snapshot = await _notices.get();
-    final notices = snapshot.docs.map(Notice.fromSnapshot).toList();
-    notices.sort((a, b) => (b.timeCreated ?? DateTime(0))
-        .compareTo(a.timeCreated ?? DateTime(0)));
-    return notices;
+    return snapshot.docs
+        .map(Notice.fromSnapshot)
+        .toList()
+        .sortedByDateDesc((notice) => notice.timeCreated);
   }
 }

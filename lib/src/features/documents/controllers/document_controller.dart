@@ -1,18 +1,17 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:mime/mime.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/utils/utils.dart';
+import '../../../core/services/remote_file_service.dart';
+import '../../../core/services/supabase_storage_service.dart';
 import '../../../models/document_model.dart';
 import '../../../providers/type_defs.dart';
 import '../repository/document_repository.dart';
 
 part 'document_controller.g.dart';
+
+const _maxFileSizeBytes = 2 * 1024 * 1024;
 
 @riverpod
 Future<void> documentFuture(DocumentFutureRef ref, {bool isRefreshed = false}) {
@@ -24,6 +23,8 @@ Future<void> documentFuture(DocumentFutureRef ref, {bool isRefreshed = false}) {
 @Riverpod(keepAlive: true)
 class DocumentController extends _$DocumentController {
   final DocumentRepository _documentRepository = DocumentRepository();
+  final SupabaseStorageService _storageService = SupabaseStorageService();
+  final RemoteFileService _remoteFileService = RemoteFileService();
 
   @override
   List<Document> build() => [];
@@ -35,6 +36,9 @@ class DocumentController extends _$DocumentController {
 
   FutureVoid deleteDocument(Document document) async {
     try {
+      if (document.storagePath.isNotEmpty) {
+        await _storageService.delete(document.storagePath);
+      }
       await _documentRepository.deleteDocument(document);
       await getAllDocuments(isRefreshed: true);
       return right(null);
@@ -55,32 +59,21 @@ class DocumentController extends _$DocumentController {
   }
 
   FutureVoid uploadFiles() async {
-    String? message;
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowMultiple: true,
+      withData: true,
       allowedExtensions: ['jpg', 'pdf', 'doc', 'docx', 'png'],
     );
     if (result == null) return right(null);
 
-    final files = result.files.where((file) {
-      if (file.size > 2048 * 1024) {
-        message = 'O tamanho máximo do arquivo é 2 MB';
-        return false;
-      }
-      return true;
-    }).toList();
-    if (files.isEmpty) return left(message ?? 'Nenhum arquivo selecionado');
+    final oversized = result.files.any((file) => file.size > _maxFileSizeBytes);
+    if (oversized) return left('O tamanho máximo do arquivo é 2 MB');
 
     try {
-      for (final file in files) {
-        await _documentRepository.addDocument(
-          Document(
-            name: file.name,
-            size: file.size,
-            contentType: file.extension,
-          ),
-        );
+      for (final file in result.files) {
+        if (file.bytes == null) continue;
+        await _addDocumentFromFile(file);
       }
       await getAllDocuments(isRefreshed: true);
       return right(null);
@@ -89,16 +82,33 @@ class DocumentController extends _$DocumentController {
     }
   }
 
-  FutureEither<String> saveDocumentFile(Document document) async {
+  Future<void> _addDocumentFromFile(PlatformFile file) async {
+    final mimeType = lookupMimeType(file.name);
+    final storagePath = '${DateTime.now().millisecondsSinceEpoch}_${file.name}';
+    final url = await _storageService.upload(
+      path: storagePath,
+      bytes: file.bytes!,
+      contentType: mimeType,
+    );
+    await _documentRepository.addDocument(
+      Document(
+        name: file.name,
+        url: url,
+        storagePath: storagePath,
+        size: file.size,
+        contentType: mimeType,
+      ),
+    );
+  }
+
+  FutureVoid openDocument(Document document) async {
     if (document.url.isEmpty) {
       return left('Arquivo indisponível para este documento');
     }
     try {
-      final tempDir = (await getTemporaryDirectory()).path;
-      final file = File('$tempDir/${document.name}');
-      final response = await http.get(Uri.parse(document.url));
-      await file.writeAsBytes(response.bodyBytes);
-      return right(file.path);
+      await _remoteFileService.open(document.url,
+          fileName: _downloadFileName(document));
+      return right(null);
     } catch (e) {
       return left(e.toString());
     }
@@ -109,16 +119,23 @@ class DocumentController extends _$DocumentController {
       return left('Arquivo indisponível para este documento');
     }
     try {
-      final downloadPath = (await getDownloadPath())!;
-      final file = File('$downloadPath/${document.name}');
-      if (await Permission.manageExternalStorage.request().isGranted) {
-        final response = await http.get(Uri.parse(document.url));
-        await file.writeAsBytes(response.bodyBytes);
-        return right(downloadPath);
-      }
+      final destination = await _remoteFileService.download(document.url,
+          fileName: _downloadFileName(document));
+      return right(destination);
     } catch (e) {
       return left(e.toString());
     }
-    return left('Aceite as permissões de arquivo para baixar');
+  }
+
+  /// Nome do arquivo para download: usa o nome exibido (renomeado), garantindo
+  /// a extensão original guardada em [Document.storagePath].
+  String _downloadFileName(Document document) {
+    final extension =
+        document.storagePath.contains('.') ? document.storagePath.split('.').last : '';
+    if (extension.isEmpty ||
+        document.name.toLowerCase().endsWith('.${extension.toLowerCase()}')) {
+      return document.name;
+    }
+    return '${document.name}.$extension';
   }
 }

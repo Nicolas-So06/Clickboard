@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../core/constants/firebase_constants.dart';
+import '../../../core/utils/list_extensions.dart';
 import '../../../models/document_model.dart';
 
 class DocumentRepository {
@@ -14,10 +15,10 @@ class DocumentRepository {
 
   Future<List<Document>> getAllDocuments() async {
     final snapshot = await _documents.get();
-    final documents = snapshot.docs.map(Document.fromSnapshot).toList();
-    documents.sort((a, b) => (b.timeCreated ?? DateTime(0))
-        .compareTo(a.timeCreated ?? DateTime(0)));
-    return documents;
+    return snapshot.docs
+        .map(Document.fromSnapshot)
+        .toList()
+        .sortedByDateDesc((document) => document.timeCreated);
   }
 
   Future<void> addDocument(Document document) async {
