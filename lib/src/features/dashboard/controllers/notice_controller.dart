@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,7 +9,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/utils/utils.dart';
 import '../../../models/notice_model.dart';
 import '../../../providers/type_defs.dart';
-import '../../../providers/utils_providers.dart';
 import '../repository/notice_repository.dart';
 
 part 'notice_controller.g.dart';
@@ -24,20 +22,10 @@ Future<void> noticeFuture(NoticeFutureRef ref, {bool isRefreshed = false}) {
 
 @Riverpod(keepAlive: true)
 class NoticeController extends _$NoticeController {
-  late NoticeRepository _noticeRepository;
-
-  init() {
-    _noticeRepository = NoticeRepository(
-        firebaseStorage: FirebaseStorage.instance,
-        department: ref.read(myUserProvider)?.dept ?? '',
-        session: ref.read(myUserProvider)?.session ?? '');
-  }
+  final NoticeRepository _noticeRepository = NoticeRepository();
 
   @override
-  List<Notice> build() {
-    init();
-    return [];
-  }
+  List<Notice> build() => [];
 
   Future<void> getAllNotices({bool isRefreshed = false}) async {
     if (!isRefreshed && state.isNotEmpty) return;
@@ -45,33 +33,35 @@ class NoticeController extends _$NoticeController {
   }
 
   FutureEither<String> saveNoticeFile(Notice notice) async {
-    String appTempDir = (await getTemporaryDirectory()).path;
-    // Path : /data/user/0/com.example.jgec_notice/cache/
-    String name = '${notice.name}.pdf';
-    String filePath = '$appTempDir/$name';
-    final file = File(filePath);
+    if (notice.downloadUrl.isEmpty) {
+      return left('Arquivo indisponível para este aviso');
+    }
     try {
-      Response resp = await get(Uri.parse(notice.downloadUrl));
-      await file.writeAsBytes(resp.bodyBytes);
+      final tempDir = (await getTemporaryDirectory()).path;
+      final file = File('$tempDir/${notice.name}.pdf');
+      final response = await http.get(Uri.parse(notice.downloadUrl));
+      await file.writeAsBytes(response.bodyBytes);
+      return right(file.path);
     } catch (e) {
       return left(e.toString());
     }
-    return right(filePath);
   }
 
-  FutureEither<String> downloadNotice(Notice doc) async {
-    String filePath = (await getDownloadPath())!;
-    String name = '${doc.name}.pdf';
-    final file = File('$filePath/$name');
+  FutureEither<String> downloadNotice(Notice notice) async {
+    if (notice.downloadUrl.isEmpty) {
+      return left('Arquivo indisponível para este aviso');
+    }
     try {
+      final downloadPath = (await getDownloadPath())!;
+      final file = File('$downloadPath/${notice.name}.pdf');
       if (await Permission.manageExternalStorage.request().isGranted) {
-        Response resp = await get(Uri.parse(doc.downloadUrl));
-        await file.writeAsBytes(resp.bodyBytes);
-        return right(filePath);
+        final response = await http.get(Uri.parse(notice.downloadUrl));
+        await file.writeAsBytes(response.bodyBytes);
+        return right(downloadPath);
       }
     } catch (e) {
       return left(e.toString());
     }
-    return left('Accept file permissions to download file');
+    return left('Aceite as permissões de arquivo para baixar');
   }
 }

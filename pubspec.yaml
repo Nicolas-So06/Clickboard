@@ -60,11 +60,13 @@ dependencies:
   #url launcher
   url_launcher: ^6.2.4
   # These dependencies are for splash screen and changing icons respectively
-  flutter_launcher_icons: ^0.13.1 
+  flutter_launcher_icons: ^0.13.1
+  carousel_slider: ^5.0.0
   lottie: ^3.0.0
 
   riverpod_annotation: ^2.3.3
   google_sign_in: ^6.2.1
+  font_awesome_flutter: ^10.7.0
   firebase_messaging: ^15.0.0
   flutter_local_notifications: ^17.2.4
   file_picker: ^9.0.0

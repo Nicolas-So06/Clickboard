@@ -1,114 +1,139 @@
-<br/>
 <p align="center">
-  <a href="https://github.com/Abhigyan103/Clickboard">
-    <img src="assets/logo/logo.png" alt="Logo" width="200">
-  </a>
-
-  <h3 align="center">ClickBoard</h3>
-
-  <p align="center">
-    Streamlining your academic experience.
-    <br/>
-    <br/>
-    <a href="https://github.com/Abhigyan103/Clickboard"><strong>Explore the docs »</strong></a>
-    <br/>
-    <br/>
-    <a href="https://github.com/Abhigyan103/Clickboard">View Demo</a>
-    .
-    <a href="https://github.com/Abhigyan103/Clickboard/issues">Report Bug</a>
-    .
-    <a href="https://github.com/Abhigyan103/Clickboard/issues">Request Feature</a>
-  </p>
+  <img src="assets/logo/logo.png" alt="ClickBoard" width="160">
 </p>
 
-![Downloads](https://img.shields.io/github/downloads/Abhigyan103/Clickboard/total) ![Contributors](https://img.shields.io/github/contributors/Abhigyan103/Clickboard?color=dark-green) ![Stargazers](https://img.shields.io/github/stars/Abhigyan103/Clickboard?style=social) ![Issues](https://img.shields.io/github/issues/Abhigyan103/Clickboard) ![License](https://img.shields.io/github/license/Abhigyan103/Clickboard) 
+<h1 align="center">ClickBoard</h1>
 
-## Table Of Contents
+<p align="center">
+  Aplicativo acadêmico em Flutter + Firebase para alunos acompanharem
+  <strong>avisos, notas e documentos</strong> da faculdade.
+</p>
 
-* [About the Project](#about-the-project)
-* [Built With](#built-with)
-* [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
-* [Usage](#usage)
-* [Contributing](#contributing)
-* [Authors](#authors)
-* [Acknowledgements](#acknowledgements)
+---
 
-## About The Project
+## 📌 Sobre o projeto
 
-Clickboard is a powerful Flutter app, seamlessly integrated with Firebase, designed to streamline your academic experience. It offers a range of features including secure authentication, intuitive carousel navigation, term-specific notices, roll number-based academic results, engaging Lottie animations, and convenient account management options like password reset, updates, and deactivation. Simplify your academic journey with Clickboard.
-<br/>
-<br/>
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/d83513f6-2172-4987-9d9d-8a8c6eaa80d1">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/c6c1d511-9f4a-4e11-91f1-fdc895dcbd9b">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/bc33c88a-cb88-449b-9cdf-5ab38e6bcd98">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/68449dd2-bdb7-4442-b9b5-2f8ec1d56ec7">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/450c49da-0e9a-4d6b-b27c-550d6a14e398">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/ae183bce-34dc-4db8-a18e-ec5ef7c077bb">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/00a83f2b-66dd-4427-8b55-7d5ae11e59fd">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/819aea40-5583-4ea1-a28b-2122886a08e9">
-  <img width="24%" src="https://github.com/Abhigyan103/Clickboard/assets/91414842/be6d397a-8fe6-4df5-ab6a-5dc32fa44bb7">
+O **ClickBoard** é um aplicativo **Flutter + Firebase** originalmente desenvolvido por
+[Abhigyan103](https://github.com/Abhigyan103/Clickboard). Nesta disciplina de
+**Análise, Projeto e Desenvolvimento Ágil**, nossa equipe recebeu o projeto **pronto** (via *fork*)
+para **dar continuidade** ao desenvolvimento, aplicando práticas ágeis (Scrum + XP): backlog,
+user stories, Planning Poker, MoSCoW e entregas incrementais por Sprint.
 
-## Built With
+> Este README documenta o projeto e o que a equipe fez até o momento.
 
-- Flutter
-- Firebase : *As a BaaS for this project*
-- Riverpod : *As a state management tool*
-- Go router : *For routing between pages*
+---
 
-## Getting Started
+## 👥 Equipe (Grupo 4)
 
-This is how you may set up your project locally.
-To get a local copy up and running follow these simple steps.
+| Integrante | Papel |
+|---|---|
+| Nicolas Soares Oliveira | Product Owner (PO) |
+| João Emanuel Silva Neri | Scrum Master (SM) |
+| Richard Machado dos Santos | Desenvolvedor |
+| Matheus Modro Krueger | Desenvolvedor |
+| João Vitor Cirico | Desenvolvedor |
 
-### Prerequisites
+---
 
-This is an example of how to list things you need to use the software and how to install them.
+## 🛠️ Tecnologias
 
-### Installation
+- **Flutter** `3.38.7`  ·  **Dart** `3.10.7`  (SDK Dart `>=3.0.5 <4.0.0`)
+- **Firebase** (Authentication + Cloud Firestore) — BaaS · _Storage e Cloud Messaging não estão ativos (ver observação abaixo)_
+- **Riverpod** — gerência de estado
+- **go_router** — navegação/rotas
 
-1. Create  a flutter project
+> ⚠️ Use as versões acima do Flutter/Dart. Versões muito diferentes podem gerar erros de
+> dependência e de API (foi o que aconteceu no início do projeto).
+
+---
+
+## ▶️ Como rodar
+
+### 1. Pré-requisitos
+- Flutter `3.38.7` instalado (`flutter --version` para conferir).
+- Os **2 arquivos de configuração do Firebase** (têm chaves, por isso **não ficam no Git**):
+  - `lib/firebase_options.dart`
+  - `android/app/google-services.json`
+  - 🔑 Peça esses 2 arquivos ao **PO** e cole nos caminhos acima. Todos usam o mesmo projeto
+    (`projeto-clickboard`) — **não crie um projeto Firebase próprio**.
+
+### 2. Baixar dependências
 ```sh
-flutter create app-name
+git clone https://github.com/Nicolas-So06/Clickboard.git
+cd Clickboard
+flutter pub get      # o Flutter também regenera os arquivos de plugin automaticamente
+flutter analyze      # deve terminar com 0 erros
 ```
-2. Clone the repo
+
+---
+
+## 💻 Rodar no Android **ou** na Web?
 
 ```sh
-git clone https://github.com/Abhigyan103/Clickboard.git
+flutter run            # Android: com um emulador aberto ou um celular (depuração USB)
+flutter run -d chrome  # Web: para testar rápido a UI, login e Firestore
 ```
 
-3. Install pub modules
+Durante o desenvolvimento a máquina do PO **não tinha espaço** para instalar o Android Studio
+(emulador), então adaptamos o projeto para **também rodar na Web** e validar login/dados.
 
-```sh
-pub get
-```
+**Importante:** essa adaptação **não quebra o Android**. No `lib/main.dart` as notificações são
+inicializadas apenas fora da web (`if (!kIsWeb)`), então:
 
-4. Configure firebase database
+| Plataforma | Comportamento |
+|---|---|
+| **Android** (emulador ou celular) | Funciona **completo**, como sempre (notificações, câmera, documentos etc.). **Não precisa reverter nada.** |
+| **Web** (Chrome) | Roda para testar **UI, login (Auth) e Firestore**. Ficam **desligados**: notificações, câmera/foto de perfil (Storage) e o *web scraping* de avisos pode falhar por **CORS**. |
+
+> 💡 Ou seja: quem tiver emulador Android é só rodar `flutter run` normalmente. Quem não tiver,
+> pode usar `flutter run -d chrome` para desenvolver e demonstrar.
+
+### Preparar a máquina para o Android (se ainda não tiver)
+- Instalar o **Android Studio** (traz o Android SDK) e criar um **emulador (AVD)**.
+- Ligar o **Modo desenvolvedor** do Windows (`start ms-settings:developers`).
+- Aceitar as licenças: `flutter doctor --android-licenses`.
+- Validar com `flutter doctor` e rodar `flutter run`.
+
+---
 
 
-## Usage
+## ✅ O que a equipe fez até agora
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+**Sprint 0 — "o app builda e roda":**
+- Correção dos erros de build herdados (dependências `carousel_slider` e `font_awesome_flutter`
+  reinstaladas; ajuste de tema para a API nova do Flutter).
+- **Firebase configurado** (projeto `projeto-clickboard`): Authentication e Cloud Firestore ativos e testados.
+- Adaptação para rodar também na **Web**, sem quebrar o Android.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+**Migração Storage → Firestore (avisos e documentos):**
+- Como o Storage exige plano pago, os **avisos** e **documentos** passaram a ser lidos e gravados
+  no **Cloud Firestore** (gratuito), no lugar do Firebase Storage.
+- Resultado: criar/listar/renomear/excluir funciona sem custo, e a tela não trava mais no
+  carregamento (mostra estado vazio quando não há itens).
 
-## Contributing
+**Sprint 1 — em andamento (história de usuário):**
+- **HU01** — apenas a **coordenação** pode renomear/excluir avisos e documentos oficiais.
+- **HU02** — o cadastro aceita apenas **e-mail institucional** válido, tratando e-mails fora do padrão.
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-* If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/Abhigyan103/Clickboard/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
-* Please make sure you check your spelling and grammar.
-* Create individual PR for each suggestion.
-* Please also read through the [Code Of Conduct](https://github.com/Abhigyan103/Clickboard/blob/main/CODE_OF_CONDUCT.md) before posting your first idea as well.
+---
 
-### Creating A Pull Request
+## ℹ️ Observação sobre o Firebase Storage
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feat/AmazingFeature`) or Bug Fix Feature (`git checkout -b fix/BugName`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'` or `git commit -m 'Fixes #issueNumber`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request to main
+O **Storage** **não está ativo**: projetos Firebase novos exigem o plano pago **Blaze** (com cartão)
+para habilitá-lo, e o grupo optou por **não vincular cartão**. Por isso, avisos e documentos foram
+migrados para o **Firestore** (grátis). As features que ainda dependem de Storage (foto de perfil,
+imagens do carrossel e arquivos de notas) **permanecem desativadas** — não fazem parte da Sprint 1.
 
-## Authors
+---
 
-* **Abhigyan Singh** - *Comp Sci Student* - [Abhigyan Singh](https://github.com/Abhigyan103) - *Owner*
+## 🎥 Vídeo da Sprint 1
+
+> _(adicionar aqui o link do vídeo demonstrando a história de usuário da Sprint 1 funcionando)_
+
+---
+
+## 📄 Créditos e licença
+
+- **Projeto original:** [Abhigyan103/Clickboard](https://github.com/Abhigyan103/Clickboard) — criado por Abhigyan Singh.
+- Distribuído sob a licença **MIT** (ver arquivo [`LICENSE`](LICENSE)).
+- Continuação acadêmica pela **Equipe 4** na disciplina de Análise, Projeto e Desenvolvimento Ágil.
