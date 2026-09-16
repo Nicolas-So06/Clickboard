@@ -7,6 +7,7 @@ import '../../../core/services/remote_file_service.dart';
 import '../../../core/services/supabase_storage_service.dart';
 import '../../../models/document_model.dart';
 import '../../../providers/type_defs.dart';
+import '../../../providers/utils_providers.dart';
 import '../repository/document_repository.dart';
 
 part 'document_controller.g.dart';
@@ -29,12 +30,18 @@ class DocumentController extends _$DocumentController {
   @override
   List<Document> build() => [];
 
+  /// Só a coordenação pode alterar conteúdo oficial (defesa no backend, HU01).
+  bool get _isCoordinator => ref.read(myUserProvider)?.isCoordinator ?? false;
+
   Future<void> getAllDocuments({bool isRefreshed = false}) async {
     if (!isRefreshed && state.isNotEmpty) return;
     state = await _documentRepository.getAllDocuments();
   }
 
   FutureVoid deleteDocument(Document document) async {
+    if (!_isCoordinator) {
+      return left('Apenas a coordenação pode excluir documentos oficiais');
+    }
     try {
       if (document.storagePath.isNotEmpty) {
         await _storageService.delete(document.storagePath);
@@ -49,6 +56,9 @@ class DocumentController extends _$DocumentController {
 
   FutureVoid renameDocument(Document document,
       {required String newName}) async {
+    if (!_isCoordinator) {
+      return left('Apenas a coordenação pode renomear documentos oficiais');
+    }
     try {
       await _documentRepository.renameDocument(document, newName);
       await getAllDocuments(isRefreshed: true);
@@ -59,6 +69,9 @@ class DocumentController extends _$DocumentController {
   }
 
   FutureVoid uploadFiles() async {
+    if (!_isCoordinator) {
+      return left('Apenas a coordenação pode adicionar documentos oficiais');
+    }
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowMultiple: true,

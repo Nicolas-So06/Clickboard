@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/utils.dart';
+import '../../../../providers/utils_providers.dart';
 import '../../controllers/document_controller.dart';
 
 class DocumentPage extends ConsumerStatefulWidget {
@@ -117,6 +118,9 @@ class _DocumentPageState extends ConsumerState<DocumentPage> {
       },
       onLongPress: () {
         HapticFeedback.heavyImpact();
+        // Só a coordenação pode renomear/excluir conteúdo oficial (HU01).
+        final bool isCoordinator =
+            ref.read(myUserProvider)?.isCoordinator ?? false;
         showModalBottomSheet(
           context: context,
           builder: (context) {
@@ -180,8 +184,9 @@ class _DocumentPageState extends ConsumerState<DocumentPage> {
                           }
                         },
                       ),
-                      const Divider(),
-                      ListTile(
+                      if (isCoordinator) const Divider(),
+                      if (isCoordinator)
+                        ListTile(
                         iconColor: Colors.blueAccent,
                         textColor: Colors.blueAccent,
                         splashColor: Colors.blueGrey,
@@ -192,8 +197,9 @@ class _DocumentPageState extends ConsumerState<DocumentPage> {
                           _showRenameDialog(context, ref, widget.document);
                         },
                       ),
-                      const Divider(),
-                      ListTile(
+                      if (isCoordinator) const Divider(),
+                      if (isCoordinator)
+                        ListTile(
                         iconColor: Colors.redAccent,
                         splashColor: Colors.blueGrey,
                         textColor: Colors.redAccent,

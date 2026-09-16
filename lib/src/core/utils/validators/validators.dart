@@ -20,17 +20,15 @@ String? nameValidate(String? value) {
   return null;
 }
 
+/// Exige o e-mail institucional (@catolicasc.edu.br). Usado no cadastro, no
+/// login e na recuperação de senha (HU02 / RF06).
 String? emailValidate(String? value) {
-  if (RegExp(r'^[.a-zA-Z0-9]+@([a-z]*\.+)*?[a-z]{2,3}$').hasMatch(value ?? '')) {
-    if (RegExp(r'^[a-zA-Z0-9]*@(cse|ece|it|ee|ce|me).jgec.ac.in$')
-        .hasMatch(value ?? '')) {
-      return null;
-    }
+  if (value == null || value.isEmpty) return 'Cannot be empty!';
+  if (RegExp(r'^[\w.+-]+@catolicasc\.edu\.br$', caseSensitive: false)
+      .hasMatch(value)) {
     return null;
-    // return 'Must use your college mail ID';
   }
-  if (value == '') return 'Cannot be empty!';
-  return 'Invalid email';
+  return 'Use seu e-mail @catolicasc.edu.br';
 }
 
 String? passValidate(String? value) {

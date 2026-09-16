@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 import '../../../core/common_widgets/my_app_bar.dart';
 import '../../../models/document_model.dart';
+import '../../../providers/utils_providers.dart';
 import '../controllers/document_controller.dart';
 
 class DocumentScreen extends ConsumerStatefulWidget {
@@ -19,9 +20,14 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
   Widget build(BuildContext context) {
     var documentsFuture = ref.watch(documentFutureProvider());
     List<Document> documents = ref.watch(documentControllerProvider);
+    // Só a coordenação adiciona documentos oficiais (HU01).
+    final bool isCoordinator =
+        ref.watch(myUserProvider)?.isCoordinator ?? false;
     return Scaffold(
       appBar: myAppBar(context: context, title: 'Clickboard'),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: !isCoordinator
+          ? null
+          : FloatingActionButton(
         onPressed: () async {
           if(documents.length>=5){
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Limit Reached")));
