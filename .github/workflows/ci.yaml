@@ -14,6 +14,10 @@ jobs:
         with:
           flutter-version: 3.38.7
           channel: stable
+      - name: Cria os arquivos de configuração a partir dos exemplos
+        run: |
+          cp lib/firebase_options.example.dart lib/firebase_options.dart
+          cp lib/supabase_config.example.dart lib/supabase_config.dart
       - run: flutter pub get
       # --no-fatal-infos: os infos são dívida de lint do código herdado; o gate
       # ainda falha em warnings e errors reais.
