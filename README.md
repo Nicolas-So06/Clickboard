@@ -25,13 +25,16 @@ Este documento descreve **o que foi entregue**, **como o projeto está organizad
 
 ## 👥 Equipe (Grupo 4)
 
-| Integrante | Papel |
-|---|---|
-| Nicolas Soares Oliveira | Product Owner (PO) |
-| João Emanuel Silva Neri | Scrum Master (SM) |
-| Richard Machado dos Santos | Desenvolvedor |
-| Matheus Modro Krueger | Desenvolvedor |
-| João Vitor Cirico | Desenvolvedor |
+Os papéis são **rotativos** entre as Sprints (prática de XP).
+
+| Integrante | Papel na Sprint 1 | Papel na Sprint 2 |
+|---|---|---|
+| Nicolas Soares Oliveira | Product Owner (PO) | Desenvolvedor |
+| João Vitor Cirico | Desenvolvedor | Product Owner (PO) |
+| João Emanuel Silva Neri | Scrum Master (SM) | Desenvolvedor |
+| Richard Machado dos Santos | Desenvolvedor | Scrum Master (SM) |
+
+> O Matheus Modro Krueger saiu do time no Sprint 2.
 
 ---
 
@@ -53,6 +56,100 @@ Antes, **qualquer** aluno logado podia renomear ou excluir avisos e documentos. 
 
 > Como parte da continuidade, o armazenamento também foi ajustado para funcionar **sem custo** — ver
 > a seção [Arquitetura](#-arquitetura).
+
+---
+
+## 🚀 Sprint 2 (N2)
+
+> No Sprint 2 o time passou a trabalhar com TDD, refatoração com teste de regressão,
+> revisão por Pull Request e integração contínua. Esta seção **incrementa** a N1.
+
+### 🎯 Sprint Goal
+Tornar a autorização de conteúdo oficial confiável **no servidor** (não só na interface) e
+corrigir a edição de perfil, com cobertura de testes automatizados e CI.
+
+### 📝 User Stories
+
+#### US-01 — Autorização de avisos e documentos no servidor
+**Como** coordenação, **quero** que apenas usuários autorizados consigam renomear, excluir ou
+enviar avisos e documentos — inclusive por fora da interface —, **para** que o conteúdo oficial
+não seja alterado por quem tenta contornar o aplicativo.
+
+*INVEST:* independente da US-02; negociável (Firestore e Storage podem evoluir em etapas);
+tem valor direto de segurança; estimável; pequena o suficiente para um Sprint; testável via
+regras no emulador.
+
+**Critérios de aceite:**
+- **Dado** um aluno, **quando** ele chama o servidor direto para gravar/apagar em `Documents` ou
+  `Notices`, **então** a regra recusa.
+- **Dado** um aluno, **quando** tenta mudar o próprio `isAdmin`, **então** é recusado.
+- **Dado** a coordenação, **quando** envia/renomeia/apaga pelo app, **então** funciona.
+- **Dado** um aluno, **quando** chama o Storage direto para apagar um arquivo, **então** o servidor
+  recusa e o arquivo permanece.
+
+#### US-02 — Edição do nome no perfil
+**Como** aluno, **quero** alterar meu nome no perfil e vê-lo salvo, **para** manter meus dados
+corretos no aplicativo.
+
+*INVEST:* independente; negociável; tem valor para o usuário; estimável; pequena; testável por
+testes de unidade e de repositório.
+
+**Critérios de aceite:**
+- **Dado** um aluno, **quando** altera o nome e salva, **então** o nome é salvo e persiste após
+  reabrir o app.
+- **Dado** um nome vazio ou só com espaços, **quando** salva, **então** recebe erro em português e
+  nada é gravado.
+- **Dado** que a gravação falhou, **quando** salva, **então** recebe mensagem clara (sem sucesso
+  falso nem erro silencioso).
+
+### 📋 Backlog do Sprint 2
+
+> Priorização (MoSCoW) e estimativa (Planning Poker) — ratificadas no Planning (issue #1).
+
+| Item | Descrição | MoSCoW | Pts |
+|---|---|---|---|
+| T3 (US-01) | Autorização no servidor (regras + spike do storage) | Must | 13 |
+| T4 (US-02) | Corrigir nome do perfil que não salva | Must | 5 |
+| T1 | CI no GitHub Actions + primeiros testes | Must | 5 |
+| T6 | Remover código herdado da JGEC (code smell) | Should | 3 |
+| T2 | Injetar o storage no DocumentController (testabilidade) | Should | 3 |
+| T5 | Tratamento de erro: catch vazio e BuildContext após await | Should | 3 |
+
+**Pendências da N1 levadas ao Sprint 2:** a adaptação do `regValidate` (matrícula fora do padrão
+da JGEC) estava em aberto e foi concluída junto da US-02.
+
+### ✅ Definition of Done
+Uma história está pronta quando: tem teste automatizado cobrindo o caminho principal; não
+introduz code smell conhecido; foi revisada por um colega em Pull Request; está mergeada na
+`main`; e a CI está verde (`flutter analyze` e `flutter test`).
+
+### 🔎 Catálogo de code smells
+
+| # | Onde | Smell | Refatoração aplicada | Teste de regressão | Tipo |
+|---|---|---|---|---|---|
+| 1 | `validators.dart` (`regValidate`) | Validação herdada da JGEC barrava matrícula "N/A", travando o `Form.validate()` e impedindo salvar o perfil | Aceitar matrícula vazia/"N/A"; padrão JGEC extraído para constante nomeada | `test/core/validators_test.dart` | Bug |
+| 2 | `profile_repository.dart` (`editProfile`) | Gravava o documento inteiro, reenviando `isAdmin` como string e fazendo a regra do servidor recusar o update | Atualiza apenas os campos editáveis (nome e matrícula) | `test/features/profile/profile_repository_test.dart` | Bug |
+| 3 | `student_model.dart` | Código morto: regex e derivações do padrão `@...jgec.ac.in`, nunca exercidas (o app só aceita `@catolicasc.edu.br`) | Remoção dos métodos mortos; `fromEmail` com valores neutros | `test/models/student_model_test.dart` | Refatoração |
+| 4 | `supabase_storage_service.dart` | Anon key embutida no app autoriza escrita/exclusão direto no Storage | Spike + políticas versionadas revogando escrita anônima (ver `docs/sprint-2/`) | `firebase/rules-tests/` (regras) | Bug (em andamento) |
+
+### 🧪 Como rodar os testes
+
+```sh
+# Testes Dart (unidade e repositório)
+flutter test
+
+# Testes das regras do Firestore (precisa de Node e JDK/Java)
+cd firebase/rules-tests && npm install && cd ../..
+firebase emulators:exec --only firestore --project=demo-clickboard "npm --prefix firebase/rules-tests test"
+```
+
+> As regras rodam sobre um emulador em Java; no ambiente local sem Java, a execução ocorre na CI.
+
+### 🔗 Links
+
+- **Pipeline de CI (GitHub Actions):** _<preencher: aba Actions do repositório>_
+- **Pull Requests principais:** _<preencher: PRs do Sprint 2 com histórico de revisão>_
+- **Vídeo de demonstração:** _<preencher: link não-listado>_
 
 ---
 
