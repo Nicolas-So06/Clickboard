@@ -1,17 +1,19 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/remote_file_service.dart';
 import '../../../core/services/supabase_storage_service.dart';
 import '../repository/document_repository.dart';
 
-final supabaseStorageServiceProvider = Provider<SupabaseStorageService>(
-  (_) => SupabaseStorageService(),
-);
+part 'document_providers.g.dart';
 
-final remoteFileServiceProvider = Provider<RemoteFileService>(
-  (_) => RemoteFileService(),
-);
+@Riverpod(keepAlive: true)
+SupabaseStorageService supabaseStorageService(SupabaseStorageServiceRef ref) =>
+    SupabaseStorageService();
 
-final documentRepositoryProvider = Provider<DocumentRepository>(
-  (_) => DocumentRepository(),
-);
+@Riverpod(keepAlive: true)
+RemoteFileService remoteFileService(RemoteFileServiceRef ref) =>
+    RemoteFileService();
+
+@Riverpod(keepAlive: true)
+DocumentRepository documentRepository(DocumentRepositoryRef ref) =>
+    DocumentRepository();
