@@ -155,7 +155,7 @@ class _NoticeFutureProviderElement
   bool get isRefreshed => (origin as NoticeFutureProvider).isRefreshed;
 }
 
-String _$noticeControllerHash() => r'e9c9ea0331a7af36057edb313fb72d3c57d6f9b6';
+String _$noticeControllerHash() => r'4f391609a786b55bc3aba21d2bcbe700fbca8822';
 
 /// See also [NoticeController].
 @ProviderFor(NoticeController)
