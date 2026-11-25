@@ -156,7 +156,7 @@ class _DocumentFutureProviderElement
 }
 
 String _$documentControllerHash() =>
-    r'e5527b26dd98785b9607db891b545f784bd6d09c';
+    r'8a5a1e9be98c9921178cf4b4620fb337088bbd28';
 
 /// See also [DocumentController].
 @ProviderFor(DocumentController)
